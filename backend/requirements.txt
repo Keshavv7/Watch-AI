@@ -1,0 +1,7 @@
+# Add libraries as needed
+fastapi
+uvicorn
+spacy
+openai
+
+
