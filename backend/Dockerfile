@@ -8,11 +8,16 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt /app/
+COPY backend/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
 COPY . /app/
 
+# Create a user to run the application
+RUN useradd -m myuser
+USER myuser
+
 # Run the FastAPI application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "PYTHONPATH=/app/src uvicorn src.main:app --host 0.0.0.0 --port 8000"]

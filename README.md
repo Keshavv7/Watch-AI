@@ -9,3 +9,43 @@ Implement a robust and automated system that leverages AI and NLP technologies t
 ## Objective 2: User-Friendly Administration and Customization
 
 Develop an intuitive and interactive admin panel that enables administrators to review, approve, fine-tune, and customize monitoring rules, alert thresholds, and system settings. The admin panel should provide real-time insights, visualization of monitoring data, and actionable intelligence to facilitate informed decision-making.
+
+
+## How to setup
+
+#### For Fedora users
+
+Run the following command in root directory of the repository
+
+```
+sudo docker compose build
+```
+
+#### For Debian/Ubuntu users
+
+Run the following command in root directory of the repository
+
+```
+sudo docker-compose build
+```
+
+Make sure to build after every update in package list. 
+
+## How to run
+
+#### For Fedora users
+
+Run the following command in root directory of the repository
+
+```
+sudo docker compose up
+```
+
+#### For Debian/Ubuntu users
+
+Run the following command in root directory of the repository
+
+```
+sudo docker-compose up
+```
+

@@ -3,5 +3,5 @@ fastapi
 uvicorn
 spacy
 openai
-
+azure-storage-blob
 

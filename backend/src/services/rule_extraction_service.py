@@ -1,9 +1,3 @@
-import openai
-
-# Initialize OpenAI ChatGPT API with fine-tuned model
-openai.api_key = "YOUR_OPENAI_API_KEY"
-model_name = "gpt-3.5-turbo"  # Fine-tuned model name
-
 def extract_rules_from_documents(documents):
     rules = {}
     
