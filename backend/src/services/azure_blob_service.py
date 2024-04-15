@@ -1,4 +1,4 @@
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob import BlobServiceClient
 import json
 
 def save_annotated_data_to_azure(storage_connection_string, container_name, dataset):
@@ -6,7 +6,7 @@ def save_annotated_data_to_azure(storage_connection_string, container_name, data
     container_client = blob_service_client.get_container_client(container_name)
     
     # Convert dataset to JSON format
-    data_json = {"data": data}
+    data_json = {"data": dataset}
     data_str = json.dumps(data_json)
     
     # Upload data to Azure Blob Storage
