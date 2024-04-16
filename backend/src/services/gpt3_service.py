@@ -19,8 +19,7 @@ def check_prompt_against_rules(prompt, rules):
         # Use ChatGPT to check the rule against the prompt
         response = openai.Completion.create(
             engine="gpt-3.5-turbo",
-            prompt=f"Check if the following prompt violates the rule: {rule_data['rule']} \nPrompt: {prompt} 
-            Respond only with '1' (violation) or '0' (no violation). Do not add any unnecessary text.",
+            prompt=f"Check if the following prompt violates the rule: {rule_data['rule']} \nPrompt: {prompt} \nRespond only with '1' (violation) or '0' (no violation). Do not add any unnecessary text.",
             max_tokens=10  # Limit the output to '1' or '0'
         )
         

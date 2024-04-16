@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import openai
 import json
 from services.azure_connection_service import fetch_documents_from_azure
-from services.rule_extraction_service import extract_rules_from_documents
+from services.rule_generation_service import extract_rules_from_documents
 from routes.user_routes import router as user_router
 from routes.admin_routes import router as admin_router
 

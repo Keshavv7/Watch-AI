@@ -12,9 +12,7 @@ def extract_rules_from_documents(documents):
 
         for sentence in sentences:
             # Fine-tuned GPT-3.5 for context-based rule adherence
-            prompt = f"Formulate a rule for responsible use of AI based on the document {doc_name}. 
-            The content should align with: {sentence}. 
-            Only respond with the rule and do not add any unnecessary leading or trailing text. "
+            prompt = f"Formulate a rule for responsible use of AI based on the document {doc_name}. The content should align with: {sentence}. Only respond with the rule and do not add any unnecessary leading or trailing text. "
             response = openai.Completion.create(
                 engine="gpt-3.5-turbo",
                 prompt=prompt,

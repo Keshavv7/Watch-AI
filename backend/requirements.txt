@@ -4,5 +4,6 @@ uvicorn
 spacy
 openai
 azure-storage-blob
-jwt
-fitz
+pyjwt
+PyMuPDF
+python-multipart
