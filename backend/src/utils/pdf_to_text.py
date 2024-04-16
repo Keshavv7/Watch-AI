@@ -26,8 +26,3 @@ def extract_sentences_from_pdf(pdf_path):
 
     return sentences
 
-# Example usage
-pdf_path = "../sample.pdf"
-sentences = extract_sentences_from_pdf(pdf_path)
-for sentence in sentences:
-    print(sentence)

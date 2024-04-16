@@ -1,6 +1,6 @@
 import openai
 
-def annotate_dataset(dataset, documents):
+def annotate_dataset(documents):
     dataset = []
     model_name = "gpt-3.5-turbo"  # Fine-tuned model name (alternatively use "text-davinci-002" for general responses)
     
