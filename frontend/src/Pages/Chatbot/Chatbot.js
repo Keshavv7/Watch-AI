@@ -1,107 +1,312 @@
-import React, { useEffect, useState } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from "react";
+import { BiPlus, BiUser, BiSend, BiSolidUserCircle } from "react-icons/bi";
+import { MdOutlineArrowLeft, MdOutlineArrowRight } from "react-icons/md";
 import "./Chatbot.css";
 
-const Chatbot = () => {
-  const [messages, setMessages] = useState([]);
-  const [messageInput, setMessageInput] = useState("");
+function App() {
+  const [text, setText] = useState("");
+  const [message, setMessage] = useState(null);
+  const [previousChats, setPreviousChats] = useState([]);
+  const [localChats, setLocalChats] = useState([]);
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [isResponseLoading, setIsResponseLoading] = useState(false);
+  const [errorText, setErrorText] = useState("");
+  const [isShowSidebar, setIsShowSidebar] = useState(false);
+  const scrollToLastItem = useRef(null);
 
-  useEffect(() => {
-    // Fake messages data
-    const fakeMessages = [
-      "Hi AlgoOracle at your service",
-      "please enter the stock you'd like to predict",
-      "Please Enter Your Target Price",
-      "good.....What is your comfortable level for investment loss (in %)",
-      "we are Predicting...",
-      "great.. do you want to predict another?",
-      "Bye",
-      ":)",
-    ];
-
-    // Simulate message insertion after a delay
-    const simulateMessageInsertion = (index) => {
-      setTimeout(() => {
-        setMessages((prevMessages) => [...prevMessages, fakeMessages[index]]);
-      }, 1000 + Math.random() * 2000);
-    };
-
-    // Simulate message flow
-    fakeMessages.forEach((message, index) => {
-      simulateMessageInsertion(index);
-    });
-  }, []);
-
-  const handleMessageChange = (event) => {
-    setMessageInput(event.target.value);
+  const createNewChat = () => {
+    setMessage(null);
+    setText("");
+    setCurrentTitle(null);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (messageInput.trim() !== "") {
-      setMessages((prevMessages) => [...prevMessages, messageInput]);
-      setMessageInput("");
+  const backToHistoryPrompt = (uniqueTitle) => {
+    setCurrentTitle(uniqueTitle);
+    setMessage(null);
+    setText("");
+  };
+
+  const toggleSidebar = useCallback(() => {
+    setIsShowSidebar((prev) => !prev);
+  }, []);
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    if (!text) return;
+
+    setIsResponseLoading(true);
+    setErrorText("");
+
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": import.meta.env.VITE_AUTH_TOKEN,
+      },
+      body: JSON.stringify({
+        message: text,
+      }),
+    };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/completions`,
+        options
+      );
+
+      if (response.status === 429) {
+        return setErrorText("Too many requests, please try again later.");
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        setErrorText(data.error.message);
+        setText("");
+      } else {
+        setErrorText(false);
+      }
+
+      if (!data.error) {
+        setErrorText("");
+        setMessage(data.choices[0].message);
+        setTimeout(() => {
+          scrollToLastItem.current?.lastElementChild?.scrollIntoView({
+            behavior: "smooth",
+          });
+        }, 1);
+        setTimeout(() => {
+          setText("");
+        }, 2);
+      }
+    } catch (e) {
+      setErrorText(e.message);
+      console.error(e);
+    } finally {
+      setIsResponseLoading(false);
     }
   };
 
-  return (
-    <div className="chat">
-      <div className="chat-title">
-        <h1>AlgoOracle</h1>
-        <h2>Predict the Future</h2>
-        <figure className="avatar">
-          <img
-            src="http://algom.x10host.com/chat/img/icon-oracle.gif"
-            alt="Oracle"
-          />
-        </figure>
-        <div className="r-nav">
-          <ul>
-            <li>
-              <a>X</a>
-            </li>
-            <li>
-              <a>
-                <img
-                  src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjAuMS4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iJiMxMDU3OyYjMTA4MzsmIzEwODY7JiMxMDgxO18xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDY0IDY0IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA2NCA2NDsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzFfXzQ0MDQyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjMxLjk5OTMiIHkxPSI3LjI0OTMiIHgyPSIzMS45OTkzIiB5Mj0iNTcuMjczMiIgc3ByZWFkTWV0aG9kPSJyZWZsZWN0Ij4KCTxzdG9wIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6IzFBNkRGRiIvPgoJPHN0b3Agb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojQzgyMkZGIi8+Cgo8L2xpbmVhckdyYWRpZW50Pgo8cGF0aCBzdHlsZT0iZmlsbDp1cmwoI1NWR0lEXzJfXzQ0MDQyKTsiIGQ9Ik0yOS44NjQsMjQuNjQ0YzAuMzU1LDAuMjM0LDAuNzc2LDAuMzU0LDEuMTk5LDAuMzU0YzAuMjk2LDAsMC41OTMtMC4wNTgsMC44NjktMC4xNzcgIGw1LjI4NC0yLjI2OEMzOC4zMTcsMjIuMDgyLDM5LDIxLjEwMywzOSwyMCwzMiYjMTA4MzsmIzEwODY7c0MzMC4xODcsMjEuNzU5LDI5LjA2OCwyNC43ODMsMjkuOTk5MiwzMS4wODdDMjkuNTAzLDMxLjEzMywyOS4wOTIsMzEuOTM5LDI5Ljg2NCwzMS42NzNWMjAuMDA0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEiPgoJPHN0b3Agb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojQjczMjQ0Ii8+Cgk8L2NpcmNsZT4KPC9zdmc+Cg=="
-                  width="26px"
-                  alt="Button"
-                />
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="messages">
-        <div className="messages-content">
-          {messages.map((message, index) => (
-            <div key={index} className="message new">
-              <figure className="avatar">
-                <img
-                  src="http://algom.x10host.com/chat/img/icon-oracle.gif"
-                  alt="Oracle"  
-                />
-              </figure>
-              <span>{message}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="message-box">
-        <form onSubmit={handleSubmit}>
-          <textarea
-            type="text"
-            className="message-input"
-            placeholder="Type message..."
-            value={messageInput}
-            onChange={handleMessageChange}
-          />
-          <button type="submit" className="message-submit sound-on-click">
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
+  useLayoutEffect(() => {
+    const handleResize = () => {
+      setIsShowSidebar(window.innerWidth <= 640);
+    };
+    handleResize();
 
-export default Chatbot;
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const storedChats = localStorage.getItem("previousChats");
+
+    if (storedChats) {
+      setLocalChats(JSON.parse(storedChats));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!currentTitle && text && message) {
+      setCurrentTitle(text);
+    }
+
+    if (currentTitle && text && message) {
+      const newChat = {
+        title: currentTitle,
+        role: "user",
+        content: text,
+      };
+
+      const responseMessage = {
+        title: currentTitle,
+        role: message.role,
+        content: message.content,
+      };
+
+      setPreviousChats((prevChats) => [...prevChats, newChat, responseMessage]);
+      setLocalChats((prevChats) => [...prevChats, newChat, responseMessage]);
+
+      const updatedChats = [...localChats, newChat, responseMessage];
+      localStorage.setItem("previousChats", JSON.stringify(updatedChats));
+    }
+  }, [message, currentTitle]);
+
+  const currentChat = (localChats || previousChats).filter(
+    (prevChat) => prevChat.title === currentTitle
+  );
+
+  const uniqueTitles = Array.from(
+    new Set(previousChats.map((prevChat) => prevChat.title).reverse())
+  );
+
+  const localUniqueTitles = Array.from(
+    new Set(localChats.map((prevChat) => prevChat.title).reverse())
+  ).filter((title) => !uniqueTitles.includes(title));
+
+  return (
+    <>
+      <div className="container">
+        <section className={`sidebar ${isShowSidebar ? "open" : ""}`}>
+          <div className="sidebar-header" onClick={createNewChat} role="button">
+            <BiPlus size={20} />
+            <button>New Chat</button>
+          </div>
+          <div className="sidebar-history">
+            {uniqueTitles.length > 0 && previousChats.length !== 0 && (
+              <>
+                <p>Ongoing</p>
+                <ul>
+                  {uniqueTitles?.map((uniqueTitle, idx) => {
+                    const listItems = document.querySelectorAll("li");
+
+                    listItems.forEach((item) => {
+                      if (item.scrollWidth > item.clientWidth) {
+                        item.classList.add("li-overflow-shadow");
+                      }
+                    });
+
+                    return (
+                      <li
+                        key={idx}
+                        onClick={() => backToHistoryPrompt(uniqueTitle)}
+                      >
+                        {uniqueTitle}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+            {localUniqueTitles.length > 0 && localChats.length !== 0 && (
+              <>
+                <p>Previous</p>
+                <ul>
+                  {localUniqueTitles?.map((uniqueTitle, idx) => {
+                    const listItems = document.querySelectorAll("li");
+
+                    listItems.forEach((item) => {
+                      if (item.scrollWidth > item.clientWidth) {
+                        item.classList.add("li-overflow-shadow");
+                      }
+                    });
+
+                    return (
+                      <li
+                        key={idx}
+                        onClick={() => backToHistoryPrompt(uniqueTitle)}
+                      >
+                        {uniqueTitle}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+          <div className="sidebar-info">
+            <div className="sidebar-info-upgrade">
+              <BiUser size={20} />
+              <p>Upgrade plan</p>
+            </div>
+            <div className="sidebar-info-user">
+              <BiSolidUserCircle size={20} />
+              <p>User</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="main">
+          {!currentTitle && (
+            <div className="empty-chat-container">
+              <img
+                src="images/chatgpt-logo.svg"
+                width={45}
+                height={45}
+                alt="ChatGPT"
+              />
+              <h1>Chat GPT Clone</h1>
+              <h3>How can I help you today?</h3>
+            </div>
+          )}
+
+          {isShowSidebar ? (
+            <MdOutlineArrowRight
+              className="burger"
+              size={28.8}
+              onClick={toggleSidebar}
+            />
+          ) : (
+            <MdOutlineArrowLeft
+              className="burger"
+              size={28.8}
+              onClick={toggleSidebar}
+            />
+          )}
+          <div className="main-header">
+            <ul>
+              {currentChat?.map((chatMsg, idx) => {
+                const isUser = chatMsg.role === "user";
+
+                return (
+                  <li key={idx} ref={scrollToLastItem}>
+                    {isUser ? (
+                      <div>
+                        <BiSolidUserCircle size={28.8} />
+                      </div>
+                    ) : (
+                      <img src="images/chatgpt-logo.svg" alt="ChatGPT" />
+                    )}
+                    {isUser ? (
+                      <div>
+                        <p className="role-title">You</p>
+                        <p>{chatMsg.content}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="role-title">ChatGPT</p>
+                        <p>{chatMsg.content}</p>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="main-bottom">
+            {errorText && <p className="errorText">{errorText}</p>}
+            <form className="form-container" onSubmit={submitHandler}>
+              <input
+                type="text"
+                placeholder="Send a message."
+                spellCheck="false"
+                value={isResponseLoading ? "Processing..." : text}
+                onChange={(e) => setText(e.target.value)}
+                readOnly={isResponseLoading}
+              />
+              {!isResponseLoading && (
+                <button type="submit">
+                  <BiSend size={20} />
+                </button>
+              )}
+            </form>
+            <p>
+              ChatGPT can make mistakes. Consider checking important
+              information.
+            </p>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export default App;

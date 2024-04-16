@@ -8,6 +8,7 @@ def create_admin(storage_connection_string: str, container_name: str, admin: Adm
     
     # Convert admin data to JSON format
     admin_json = admin.dict()
+    
     admin_str = json.dumps(admin_json)
     
     # Upload admin data to Azure Blob Storage
