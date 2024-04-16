@@ -16,16 +16,16 @@ Brief description of the project.
 
 1. Clone the repository.
 2. Install the dependencies by running the following command:
-    ```shell
-    npm install
-    ```
+   ```shell
+   npm install
+   ```
 
 ## Usage
 
 1. Start the development server by running the following command:
-    ```shell
-    npm start
-    ```
+   ```shell
+   npm start
+   ```
 2. Open your browser and navigate to `http://localhost:3000`.
 
 ## Features

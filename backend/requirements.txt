@@ -7,3 +7,4 @@ azure-storage-blob
 pyjwt
 PyMuPDF
 python-multipart
+sqlalchemy
