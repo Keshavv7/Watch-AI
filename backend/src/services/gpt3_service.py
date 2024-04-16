@@ -1,5 +1,7 @@
 import openai
 import json
+from services.azure_blob_service import save_violations_to_azure
+from services.user_service import update_user_violations_to_azure
 from azure.storage.blob import BlobServiceClient
 
 def load_rules_from_azure(storage_connection_string: str, container_name: str):
@@ -26,17 +28,23 @@ def check_prompt_against_rules(prompt, rules):
         # Extract the binary response
         binary_response = response.choices[0].text.strip()
         
-        if binary_response == '1':
+        if '1' in binary_response:
             violations.append({"document": rule_data["document"], "rule": rule_data["rule"]})
     
     return violations
 
-def generate_responses(prompt: str, model_name: str, storage_connection_string: str, container_name: str):
+def generate_responses(prompt: str, username: str, model_name: str, storage_connection_string: str, container_name: str):
     rules = load_rules_from_azure(storage_connection_string, container_name)
     violations = check_prompt_against_rules(prompt, rules)
     
-    if violations:
-        return {"response": f"This is invalid and goes against the following guidelines: {violations}"}
+    if len(violations)>0:
+        # Save violations to Azure Blob
+        save_violations_to_azure(storage_connection_string, container_name, prompt, violations)
+
+        # Update user violations count
+        update_user_violations_to_azure(storage_connection_string, container_name, username, len(violations))
+
+        return {"response": f"This is invalid and goes against organization's guidelines. Please feel free to talk about anything else."}
     
     completion = openai.ChatCompletion.create(
         model=model_name,
